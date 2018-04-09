@@ -1,7 +1,7 @@
 Identifier  =  "BagWatcher"
 Name        =  { English = "BagWatcher" }
 NameShort   =  "BagWatcher"
-Version     =  "0.0.12"
+Version     =  "0.0.13"
 Description =  { English = "Snoop you Bags, all of them!" }
 Author      =  "marcob@marcob.org"
 Website     =  "https://github.com/cubeslinger/__bag_watcher"
@@ -11,5 +11,6 @@ Environment =  "4.0"
 
 RunOnStartup = {
    "__bag_watcher.lua",
+   "__bag_cacher.lua",
    "BagWatcher.lua",
 }

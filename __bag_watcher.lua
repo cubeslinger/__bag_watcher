@@ -1,34 +1,35 @@
 --
 --
---    Addon       __bag_monitor.lua
+--    Addon       __bag_watcher.lua
 --    Author      marcob@marcob.org
 --    StartDate   05/04/2018
---    Version     0.5
+--    Version     0.6
 --
 --
 --    Main Call:
 --
 --    <handler>   =  bagmonitor([<callback_function>])
---                   [<callback_function>]   => if present gets called like this:
 --
---                                              callback_function(message_tbl)
+--       [<callback_function>]   => if present gets called like this: callback_function(<message_tbl>)
 --
---                            message_table  => { [queryid]    =  { msgid=<msgid>, slot=<slot>, itemid=<itemid>, itemname=<itemname>, itemcategory=<itemcategory>, newevent=<newevent> } }
+--       <message_table>   => { [queryid] = { msgid=<msgid>, slot=<slot>, itemid=<itemid>, itemname=<itemname>, itemcategory=<itemcategory>, newevent=<newevent> } }
 --
---                                              <msgid>        =  event arrivalorder, progressive.
---                                              <slot>         =  bag and slot where the event took place.
---                                              <itemid>       =  the itemid of the event's object.
---                                              <itemname>     =  the item name of the event's object (in current client language).
---                                              <itemcategory> =  the item category of the event's object (in current client language).
---                                              <newevent>     =  true if the event is a new one, false it's an update.
+--          <msgid>        =  event arrivalorder, progressive.
+--          <slot>         =  bag and slot where the event took place.
+--          <itemid>       =  the itemid of the event's object.
+--          <itemname>     =  the item name of the event's object (in current client language).
+--          <itemcategory> =  the item category of the event's object (in current client language).
+--          <newevent>     =  true if the event is a new one, false it's an update.
 --
 --    Public Methods:
 --
---    <queryid>   =  <handler>.addbyname(itemname)
---                   <queryid> => to be used in getmessages(<queryid>)
---    void        =  <handler>.delbyname(itemname)
---    table       =  <handler>.getmessages(<queryid>)
---                => table = { slot=slot, itemid=itemid, itemname=itemname, itemcategory=itemcategory }
+--       <watcherid> =  <handler>.addwatcher({...})
+--                      <watcherid> => to be used in getmessages(<watcherid>)
+--
+--       void        =  <handler>.delwatcher(<watcherid>)
+--
+--       <msgtable>  =  <handler>.getmessages(<watcherid>)
+--                      <msgtable> = { slot=bag_slot, itemid=item_id, itemname=item_name, itemcategory=item_category, newevent=new_event, stack=stack }
 --
 --    Public Vars:
 --
@@ -127,7 +128,7 @@
          ]]
 --
 --
-local addon, achi = ...
+local addon, bw = ...
 --
 function bagmonitor(callback_function)
    -- the new instance
@@ -141,7 +142,6 @@ function bagmonitor(callback_function)
    -- they are faster than table access, and are truly private, so the code that uses your class can't get them
    --
    local watchers             =  {}
-   local monitored_itemnames  =  {}
    local queryid              =  0
    local msgid                =  0
    local lastmsg              =  0
@@ -160,24 +160,8 @@ function bagmonitor(callback_function)
    end
 
    -- private
-   local function iswatchedname(frombag)
-      local retval   =  false
-      frombag        =  string.lower(frombag)
-
-      for _, tocheck in ipairs(monitored_itemnames) do
-         if string.find(frombag, tocheck) then
-            retval   =  true
-         else
-            retval   =  false
-         end
-      end
-
-      return retval
-   end
-
-   -- private
    local function queue_message(t)
-      -- t = {slot=slot, itemid=itemid, itemname=itemname, itemcategory=itemcategory)}
+      -- t = {slot=slot, itemid=itemid, itemname=itemname, itemcategory=itemcategory, newevent=t.newevent, stack=t.stack)}
 
 --       for k, v in pairs(t) do
 --          print(string.format("queue_message: k=%s, v=%s", k, v))
@@ -186,7 +170,7 @@ function bagmonitor(callback_function)
       msgid    =  msgid + 1
       lastmsg  =  msgid
 
-      local tt  =   { msgid=msgid, slot=t.slot, itemid=t.itemid, itemname=t.itemname, itemcategory=t.itemcategory, newevent=t.newevent }
+      local tt  =   { msgid=msgid, slot=t.slot, itemid=t.itemid, itemname=t.itemname, itemcategory=t.itemcategory, newevent=t.newevent, stack=t.stack }
 
       if not self.mailbox[t.queryid]   then  self.mailbox[t.queryid] =  {} end
 
@@ -227,7 +211,7 @@ function bagmonitor(callback_function)
                      --
                      if qhits == countarray(qargs) then
 
---                         print(string.format("Queueing Event: queryid[%s]\n                newevent[%s]\n                slot[%s]\n                itemid[%s]\n                itemname[%s]\n                category[%s]", queryid, new, slot, itemid, item.name, item.category))
+                        print(string.format("Queueing Event: queryid[%s]\n                newevent[%s]\n                slot[%s]\n                itemid[%s]\n                itemname[%s]\n                category[%s]\n                stack=[%s]", queryid, new, slot, itemid, item.name, item.category, item.stack))
 
                         local t        =  {}
                         t.slot         =  slot
@@ -236,6 +220,7 @@ function bagmonitor(callback_function)
                         t.itemcategory =  item.category
                         t.queryid      =  queryid
                         t.newevent     =  new
+                        t.stack        =  item.stack
                         queue_message(t)
                         t              =  {}
                      end
@@ -301,24 +286,9 @@ function bagmonitor(callback_function)
    end
 
    --
-   -- PUBLIC: add an object (by name)
-   -- to the monitored list
-   --
-   function self.addbyname(itemname)
-
-      -- first item to monitor, so we
-      -- need to install Event Monitors.
-      if countarray(monitored_itemnames) < 1 then attach_events() end
-
-      table.insert(monitored_itemnames, string.lower(itemname))
-
-      return
-   end
-
-   --
    -- PUBLIC
    --
-   -- <handler>.addwatcher( {name="itemname", category="categoryname", itemid="itemid", [exact=<true|false>]} )
+   -- <handler>.addwatcher( { name="itemname", category="categoryname", itemid="itemid" } )
    --    userinput.name       -> watch for item by name
    --    userinput.category   -> watch for category items
    --    userinput.itemid     -> watch for item by its itemid
@@ -342,31 +312,24 @@ function bagmonitor(callback_function)
 
       return queryid
    end
+ 
+   --
+   -- PUBLIC: remove a watcher by watcherid
+   -- watcherid is returned by .addwatcher(...)
+   --
+   function self.delwatcher(watcherid)
 
+      if self.watchers[watcherid]   then
+         table.remove(self.watchers, watcherid)     
 
-   -- PUBLIC: add an object (by name)
-   -- to the monitored list
-   function self.delbyname(itemname)
-
-      local monitored_itemnames_size = #monitored_itemnames
-      local i = 1
-      while i <= #monitored_itemnames_size do
-         local value = monitored_itemnames[i]
-         if value == itemname then
-            table.remove(monitored_itemnames, i)
-         else
-            i = i + 1
-         end
-      end
-
-      -- if this is the last element watched we need to remove
-      -- Event Monitors.
-      if next(monitored_itemnames) == nil then
-         detach_events()
+         -- if this is the last element watched we need to remove
+         -- Event Monitors.
+         if countarray(watchers) > 1 then detach_events()   end
       end
 
       return
    end
+   
 
    -- return the instance
    return self

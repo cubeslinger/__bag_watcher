@@ -22,18 +22,22 @@ local function displayresults(t)
 
 end
 
--- bw.bagmonitor  =  bagmonitor(displayresults)
-bw.bagcacher   =  bagcacher(displayresults)
+local function main()
+   -- bw.bagmonitor  =  bagmonitor(displayresults)
+   bw.bagcacher   =  bagcacher(displayresults)
 
 
--- <handler>.addwatcher( {name="itemname", category="categoryname", itemid="itemid" } )
---    userinput.name       -> watch for item by name (or substring)
---    userinput.category   -> watch for category items (or substring)
---    userinput.itemid     -> watch for item by its itemid
---
-local queryfish   =  bw.bagcacher.addwatcher({ category="fish" })       -- everything in a category with "fish" in name
-print(string.format("ACHI: queryfish  [%s]", queryfish))
+   -- <handler>.addwatcher( {name="itemname", category="categoryname", itemid="itemid" } )
+   --    userinput.name       -> watch for item by name (or substring)
+   --    userinput.category   -> watch for category items (or substring)
+   --    userinput.itemid     -> watch for item by its itemid
+   --
+   local queryfish   =  bw.bagcacher.addwatcher({ category="fish" })       -- everything in a category with "fish" in name
+   -- print(string.format("agWatcher: queryfish  [%s]", queryfish))
 
-local queryburlap =  bw.bagcacher.addwatcher({ name="burlap cloth" })   -- look for "burlap cloth" (case INsensitive)
-print(string.format("ACHI: queryburlap[%s]", queryburlap))
+   local queryburlap =  bw.bagcacher.addwatcher({ name="burlap cloth" })   -- look for "burlap cloth" (case INsensitive)
+   -- print(string.format("BagWatcher: queryburlap[%s]", queryburlap))
+   
+end
 
+Command.Event.Attach(Event.Unit.Availability.Full, main,    "Stats: get base stats")
