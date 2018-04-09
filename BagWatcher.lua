@@ -4,27 +4,8 @@
 -- StartDate   04/04/2018
 -- Version     0.2
 --
-local addon, achi = ...
+local addon, bw = ...
 --
-
--- local bm =  achi.bagmonitor()
-
--- for var, val in pairs(bm) do
---    print(string.format("var=[%s] val=[%s]", var, val))
--- end
-
--- bm.addbyname("fish")
-
--- local queryfish   =  achi.bagmonitor.addbyname("fish")
--- local queryburlap =  achi.bagmonitor.addbyname("burlap cloth")
-
-
--- <handler>.addwatcher( {name="itemname", category="categoryname", itemid="itemid", [exact=<true|false>]} )
---    userinput.name       -> watch for item by name (or substring)
---    userinput.category   -> watch for category items (or substring)
---    userinput.itemid     -> watch for item by its itemid
---
-
 local function displayresults(t)
 
    local k, v = nil, nil
@@ -41,11 +22,18 @@ local function displayresults(t)
 
 end
 
-achi.bagmonitor=  bagmonitor(displayresults)
+-- bw.bagmonitor  =  bagmonitor(displayresults)
+bw.bagcacher   =  bagcacher(displayresults)
 
-local queryfish   =  achi.bagmonitor.addwatcher({ category="fish" })       -- everything in a category with "fish" in name
+
+-- <handler>.addwatcher( {name="itemname", category="categoryname", itemid="itemid" } )
+--    userinput.name       -> watch for item by name (or substring)
+--    userinput.category   -> watch for category items (or substring)
+--    userinput.itemid     -> watch for item by its itemid
+--
+local queryfish   =  bw.bagcacher.addwatcher({ category="fish" })       -- everything in a category with "fish" in name
 print(string.format("ACHI: queryfish  [%s]", queryfish))
 
-local queryburlap =  achi.bagmonitor.addwatcher({ name="burlap cloth" })   -- look for "burlap cloth" (case INsensitive)
+local queryburlap =  bw.bagcacher.addwatcher({ name="burlap cloth" })   -- look for "burlap cloth" (case INsensitive)
 print(string.format("ACHI: queryburlap[%s]", queryburlap))
 
