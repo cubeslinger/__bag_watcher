@@ -1,19 +1,7 @@
-RIFT - Achi
+RIFT - __bag_watcher
 
-giving a look at the "Achievement" API.
+Library to monitor bag events.
 
 snailtail@typhiria
 
 04/04/2018
-
-
-- From log inventory
--- Sparkles
-
-- From Inventory
--- Artifacts
-
-- From Stats
--- Crit MAX dps
--- Crit MAX hps
-# __bag_watcher
