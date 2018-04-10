@@ -29,7 +29,7 @@
 --       void        =  <handler>.delwatcher(<watcherid>)
 --
 --       <msgtable>  =  <handler>.getmessages(<watcherid>)
---                      <msgtable> = { slot=bag_slot, itemid=item_id, name=item_name, category=item_category, newevent=new_event, stack=stack }
+--                      <msgtable> = { slot=bag_slot, itemid=itemid, name=item_name, category=item_category, newevent=new_event, stack=stack }
 --
 --    Public Vars:
 --
@@ -93,42 +93,7 @@ function bagwatcher(callback_function)
       return
    end
 
-   --
    -- private
-   -- scan All Inventory Bags
-   --
---    local function initbagcache()
---       --
---       --    Utility.Item.Slot.All
---       --    Utility.Item.Slot.Bank
---       --    Utility.Item.Slot.Character
---       --    Utility.Item.Slot.Guild
---       --    Utility.Item.Slot.Inventory
---       --    Utility.Item.Slot.Quest
---       --    Utility.Item.Slot.Wardrobe
---       --
---       local allbags  =  Inspect.Item.List(Utility.Item.Slot.All())
---
---       for slotid, itemid in pairs(allbags) do
---
---          if itemid then
---
---             local item  = Inspect.Item.Detail(itemid)
---
---             if self.cachebase[item.name] then
---                self.cachebase[item.name]   =  self.cachebase[item.name] + (item.stack or 0)
---             else
---                self.cachebase[item.name]   =  (item.stack or 0)
---             end
---
---             print(string.format("initbagcache: %s = %s item.stack=[%s]", item.name, self.cachebase[item.name], item.stack))
---
---          end
---       end
---
---       return
---    end
-
    local function initbagcache()
       --
       --    Utility.Item.Slot.All
@@ -139,31 +104,44 @@ function bagwatcher(callback_function)
       --    Utility.Item.Slot.Quest
       --    Utility.Item.Slot.Wardrobe
       --
-      local slot     =  nil
-      slot           =  Utility.Item.Slot.All()
-      local allbags  =  Inspect.Item.List(slot)
+      local table    =  {}
+      local all      =  Inspect.Item.List(Utility.Item.Slot.All())
+      local inventory=  Inspect.Item.List(Utility.Item.Slot.Inventory())
+      local quest    =  Inspect.Item.List(Utility.Item.Slot.Quest())
+--       local allbags  =  { inventory, quest   }
+--       local allbags  =  { all }
+      local allbags  =  { inventory }
 --       print(string.format("all count: %s [%s]", countarray(allbags), slot))
 
-      for slotid, itemid in pairs(allbags) do
+      for _, table in ipairs(allbags) do
 
-         if itemid then
+--          print(string.format("initbagcache: table is %s", table))
 
-            local item  = Inspect.Item.Detail(itemid)
+         for slotid, itemid in pairs(table) do
 
-            if item.stack then
+            print(string.format("initbagcache: slotid %s itemid %s", slotid, itemid))
 
-               if self.cachebase[item.name] then
-                  self.cachebase[item.name]   =  self.cachebase[item.name] + (item.stack or 0)
-               else
-                  self.cachebase[item.name]   =  (item.stack or 0)
+            if itemid then
+
+               local item  = Inspect.Item.Detail(itemid)
+
+               if item.stack then
+
+                  if self.cachebase[item.name] then
+                     self.cachebase[item.name]   =  self.cachebase[item.name] + (item.stack or 0)
+                  else
+                     self.cachebase[item.name]   =  (item.stack or 0)
+                  end
+
+                  print(string.format("initbagcache: name   %s base   %s stack   %s slot   %s", item.name, self.cachebase[item.name], item.stack, slotid))
+
                end
 
-               print(string.format("initbagcache: %s = %s item.stack=[%s] slot=[%s]", item.name, self.cachebase[item.name], item.stack, slotid))
             end
 
          end
-      end
 
+      end
 
       return
    end

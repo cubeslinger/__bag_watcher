@@ -16,6 +16,7 @@ local function displayresults(t)
       for a, b in pairs(v) do
          print(string.format("                              : [%s] [%s]", a, b))
       end
+      print(string.format("BagWatcher: %s %s", v.name, v.delta))
    end
 
    return
@@ -24,34 +25,26 @@ end
 
 local function main(h, t)
 
-   bw.playerid =  Inspect.Unit.Detail("player").id
+   bw.player   =  Inspect.Unit.Detail("player")
 
    local availableid, availablename, weareready =  nil,  nil, false
-   for availableid, availablename in pairs(t) do
 
---       print(string.format("Event.Unit.Availability.Full: we=[%s] k=[%s] v=[%s]", bw.playerid, availableid, availablename))
-
-      if bw.playerid == availableid then  weareready = true end
-   end
+   for availableid, availablename in pairs(t) do if bw.player.id == availableid then  weareready = true break end end
 
    if weareready then
 
-      bw.bagwatcher  =  bagwatcher(displayresults)
-   --    bw.bagcacher   =  bagcacher(displayresults)
+      Command.Event.Detach(Event.Unit.Availability.Full, main, "Stats: get base stats")
 
+      bw.bagwatcher  =  bagwatcher(displayresults)
 
       -- <handler>.addwatcher( {name="itemname", category="categoryname", itemid="itemid" } )
       --    userinput.name       -> watch for item by name (or substring)
       --    userinput.category   -> watch for category items (or substring)
       --    userinput.itemid     -> watch for item by its itemid
       --
-   --    local queryfish   =  bw.bagcacher.addwatcher({ category="fish" })       -- everything in a category with "fish" in name
-      local queryfish   =  bw.bagwatcher.addwatcher({ category="fish" })       -- everything in a category with "fish" in name
-      -- print(string.format("agWatcher: queryfish  [%s]", queryfish))
-
-   --    local queryburlap =  bw.bagcacher.addwatcher({ name="burlap cloth" })   -- look for "burlap cloth" (case INsensitive)
-      local queryburlap =  bw.bagwatcher.addwatcher({ name="burlap cloth" })   -- look for "burlap cloth" (case INsensitive)
-      -- print(string.format("BagWatcher: queryburlap[%s]", queryburlap))
+--       local q        =  {}
+      local fish     =  bw.bagwatcher.addwatcher({ category =  "fish" })            -- everything in a category with "fish" in it's name
+      local burlap   =  bw.bagwatcher.addwatcher({ name     =  "burlap cloth" })    -- look for "burlap cloth" in item name (case INsensitive)
 
    end
 
