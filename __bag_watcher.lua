@@ -3,7 +3,7 @@
 --    Addon       __bag_watcher.lua
 --    Author      marcob@marcob.org
 --    StartDate   05/04/2018
---    Version     0.6
+--    Version     0.7
 --
 --
 --    Main Call:
@@ -183,7 +183,14 @@ function bagwatcher(callback_function)
                         t.category     =  item.category
                         t.queryid      =  queryid
                         t.newevent     =  new
-                        t.stack        =  item.stack
+                        
+                        if t.stack  == nil   then
+                           t.stack     =  0
+                           print(string.format("STACK is ZERO: object %s disapperad from slot %s, resetting stack to 0", item.name, slot))
+                        else
+                           t.stack     =  item.stack
+                        end
+                        
                         t.delta        =  t.stack - (self.cachebase[t.name] or 0)
 
                         print(string.format("Queueing Event: queryid[%s]\n                newevent[%s]\n                slot[%s]\n                itemid[%s]\n                name[%s]\n                category[%s]\n                stack=[%s]\n                delta=[%s]\n                cachebase=[%s]", queryid, new, slot, itemid, item.name, item.category, item.stack,  t.delta, self.cachebase[item.name]))
