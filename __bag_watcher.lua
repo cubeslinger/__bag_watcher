@@ -12,13 +12,13 @@
 --
 --       [<callback_function>]   => if present gets called like this: callback_function(<message_tbl>)
 --
---       <message_table>   => { [queryid] = { msgid=<msgid>, slot=<slot>, itemid=<itemid>, itemname=<itemname>, itemcategory=<itemcategory>, newevent=<newevent> } }
+--       <message_table>   => { [queryid] = { msgid=<msgid>, slot=<slot>, itemid=<itemid>, name=<name>, category=<category>, newevent=<newevent> } }
 --
 --          <msgid>        =  event arrivalorder, progressive.
 --          <slot>         =  bag and slot where the event took place.
 --          <itemid>       =  the itemid of the event's object.
---          <itemname>     =  the item name of the event's object (in current client language).
---          <itemcategory> =  the item category of the event's object (in current client language).
+--          <name>         =  the item name of the event's object (in current client language).
+--          <category>     =  the item category of the event's object (in current client language).
 --          <newevent>     =  true if the event is a new one, false it's an update.
 --
 --    Public Methods:
@@ -29,111 +29,22 @@
 --       void        =  <handler>.delwatcher(<watcherid>)
 --
 --       <msgtable>  =  <handler>.getmessages(<watcherid>)
---                      <msgtable> = { slot=bag_slot, itemid=item_id, itemname=item_name, itemcategory=item_category, newevent=new_event, stack=stack }
+--                      <msgtable> = { slot=bag_slot, itemid=item_id, name=item_name, category=item_category, newevent=new_event, stack=stack }
 --
 --    Public Vars:
 --
 --       <handler>.mailbox   => the table read by getmessages()
 --
 --
---[[
-
-
-   Notes on Bags:
-   ------
-   source: http://wiki.riftui.com/Inspect.Item.List
-
-   Sintax
-
-      items = Inspect.Item.List()		-- table  <- void
-      item  = Inspect.Item.List(slot)	-- item   <- slot
-      items = Inspect.Item.List(slot)	-- table  <- slot
-      items = Inspect.Item.List(slots)	-- table  <- table
-
-   Parameters
-
-      slot:	A single slot specifier.
-      slots:	A table of slot specifiers.
-
-   Return Value
-
-      item:	A single item ID. This will be returned only if the input is a single fully-specified slot specifier.
-      items:	A lookup table of item IDs. The key is the slot specifier, the value is the item ID.
-
-   Slot Identifiers
-
-   Slot identifiers are strings used to denote the exact location of items, whether in the bank, worn on the character,
-   in the wardrobe, or in inventory. Slots are designated by the following code:
-
-   Every slot begins with "s"
-   The second, third, and fourth letters indicate the location
-
-         bmn = Main bank slots
-
-         b0x = Bank bag slot, where x is between 1 and 8
-
-         qst = Quest bag
-
-         eqp = Equipped items
-
-         ibg = Inventory bags (the actual bag, not the items in the bag)
-
-         i0x = Inventory bag contents, where x is between 1 and 5
-
-         w0x = Wardrobe slot, where x is between 1 and 4
-
-         g0x = Guild bank, where x indicates the vault number
-
-   A period separates the first four characters from the remaining three characters
-   The remaining three characters indicate the position of the item
-
-         0xx = Slot position within bags (or, in the case of the bags themselves, the bag slot)
-         rn1 = Ring 1
-         rn2 = Ring 2
-         blt = Belt
-         nck = Neck
-         hlm = Helmet
-         tkt = Trinket
-         chs = Chest
-         fcs = Planar Focus
-         hof = Off hand
-         lgs = Legs
-         shl = Shoulders
-         syn = Synergy Crystal
-         rng = Ranged
-         fet = Feet
-         hmn = Main hand
-         glv = Gloves
-         sel = Seal
-
-   Examples
-         seqp.nck = Equipped Neck item
-         si05.022 = Item number 22 in bag number 5
-         sibg.004 = Bag number 4
-         sqst.001 = Item number 1 in the quest bag
-         sw01.shl = Shoulder item in Wardrobe slot 1
-
-
-   Utilities
-   The API has provided a number of utilities to make it easier to create the slot identifiers
-   without necessarily remembering all the above information:
-
-         Utility.Item.Slot.All
-         Utility.Item.Slot.Bank
-         Utility.Item.Slot.Character
-         Utility.Item.Slot.Guild
-         Utility.Item.Slot.Inventory
-         Utility.Item.Slot.Quest
-         Utility.Item.Slot.Wardrobe
-         ]]
 --
 --
 local addon, bw = ...
 --
-function bagmonitor(callback_function)
+function bagwatcher(callback_function)
    -- the new instance
    local self =   {
-                  mailbox  =  {},
+                  mailbox     =  {},
+                  cachebase   =  {}
                   -- public fields go in the instance table
                   }
 
@@ -161,7 +72,7 @@ function bagmonitor(callback_function)
 
    -- private
    local function queue_message(t)
-      -- t = {slot=slot, itemid=itemid, itemname=itemname, itemcategory=itemcategory, newevent=t.newevent, stack=t.stack)}
+      -- t  =  { msgid=msgid, slot=t.slot, itemid=t.itemid, name=t.name, category=t.category, newevent=t.newevent, stack=t.stack, delta=t.delta }
 
 --       for k, v in pairs(t) do
 --          print(string.format("queue_message: k=%s, v=%s", k, v))
@@ -170,7 +81,7 @@ function bagmonitor(callback_function)
       msgid    =  msgid + 1
       lastmsg  =  msgid
 
-      local tt  =   { msgid=msgid, slot=t.slot, itemid=t.itemid, itemname=t.itemname, itemcategory=t.itemcategory, newevent=t.newevent, stack=t.stack }
+      local tt  =   { msgid=msgid, slot=t.slot, itemid=t.itemid, name=t.name, category=t.category, newevent=t.newevent, stack=t.stack, delta=t.delta }
 
       if not self.mailbox[t.queryid]   then  self.mailbox[t.queryid] =  {} end
 
@@ -181,6 +92,82 @@ function bagmonitor(callback_function)
 
       return
    end
+
+   --
+   -- private
+   -- scan All Inventory Bags
+   --
+--    local function initbagcache()
+--       --
+--       --    Utility.Item.Slot.All
+--       --    Utility.Item.Slot.Bank
+--       --    Utility.Item.Slot.Character
+--       --    Utility.Item.Slot.Guild
+--       --    Utility.Item.Slot.Inventory
+--       --    Utility.Item.Slot.Quest
+--       --    Utility.Item.Slot.Wardrobe
+--       --
+--       local allbags  =  Inspect.Item.List(Utility.Item.Slot.All())
+--
+--       for slotid, itemid in pairs(allbags) do
+--
+--          if itemid then
+--
+--             local item  = Inspect.Item.Detail(itemid)
+--
+--             if self.cachebase[item.name] then
+--                self.cachebase[item.name]   =  self.cachebase[item.name] + (item.stack or 0)
+--             else
+--                self.cachebase[item.name]   =  (item.stack or 0)
+--             end
+--
+--             print(string.format("initbagcache: %s = %s item.stack=[%s]", item.name, self.cachebase[item.name], item.stack))
+--
+--          end
+--       end
+--
+--       return
+--    end
+
+   local function initbagcache()
+      --
+      --    Utility.Item.Slot.All
+      --    Utility.Item.Slot.Bank
+      --    Utility.Item.Slot.Character
+      --    Utility.Item.Slot.Guild
+      --    Utility.Item.Slot.Inventory
+      --    Utility.Item.Slot.Quest
+      --    Utility.Item.Slot.Wardrobe
+      --
+      local slot     =  nil
+      slot           =  Utility.Item.Slot.All()
+      local allbags  =  Inspect.Item.List(slot)
+--       print(string.format("all count: %s [%s]", countarray(allbags), slot))
+
+      for slotid, itemid in pairs(allbags) do
+
+         if itemid then
+
+            local item  = Inspect.Item.Detail(itemid)
+
+            if item.stack then
+
+               if self.cachebase[item.name] then
+                  self.cachebase[item.name]   =  self.cachebase[item.name] + (item.stack or 0)
+               else
+                  self.cachebase[item.name]   =  (item.stack or 0)
+               end
+
+               print(string.format("initbagcache: %s = %s item.stack=[%s] slot=[%s]", item.name, self.cachebase[item.name], item.stack, slotid))
+            end
+
+         end
+      end
+
+
+      return
+   end
+
 
    -- private
    local function parseventtable(h, eventtable, new)
@@ -211,18 +198,22 @@ function bagmonitor(callback_function)
                      --
                      if qhits == countarray(qargs) then
 
-                        print(string.format("Queueing Event: queryid[%s]\n                newevent[%s]\n                slot[%s]\n                itemid[%s]\n                itemname[%s]\n                category[%s]\n                stack=[%s]", queryid, new, slot, itemid, item.name, item.category, item.stack))
-
                         local t        =  {}
                         t.slot         =  slot
                         t.itemid       =  itemid
-                        t.itemname     =  item.name
-                        t.itemcategory =  item.category
+                        t.name         =  item.name
+                        t.category     =  item.category
                         t.queryid      =  queryid
                         t.newevent     =  new
                         t.stack        =  item.stack
+                        t.delta        =  t.stack - (self.cachebase[t.name] or 0)
+
+                        print(string.format("Queueing Event: queryid[%s]\n                newevent[%s]\n                slot[%s]\n                itemid[%s]\n                name[%s]\n                category[%s]\n                stack=[%s]\n                delta=[%s]\n                cachebase=[%s]", queryid, new, slot, itemid, item.name, item.category, item.stack,  t.delta, self.cachebase[item.name]))
+                        --
                         queue_message(t)
-                        t              =  {}
+                        --
+                        self.cachebase[t.name]  =  t.stack
+                        t                       =  {}
                      end
 
                   end
@@ -288,7 +279,7 @@ function bagmonitor(callback_function)
    --
    -- PUBLIC
    --
-   -- <handler>.addwatcher( { name="itemname", category="categoryname", itemid="itemid" } )
+   -- <handler>.addwatcher( { name="name", category="categoryname", itemid="itemid" } )
    --    userinput.name       -> watch for item by name
    --    userinput.category   -> watch for category items
    --    userinput.itemid     -> watch for item by its itemid
@@ -312,7 +303,7 @@ function bagmonitor(callback_function)
 
       return queryid
    end
- 
+
    --
    -- PUBLIC: remove a watcher by watcherid
    -- watcherid is returned by .addwatcher(...)
@@ -320,7 +311,7 @@ function bagmonitor(callback_function)
    function self.delwatcher(watcherid)
 
       if self.watchers[watcherid]   then
-         table.remove(self.watchers, watcherid)     
+         table.remove(self.watchers, watcherid)
 
          -- if this is the last element watched we need to remove
          -- Event Monitors.
@@ -329,7 +320,9 @@ function bagmonitor(callback_function)
 
       return
    end
-   
+
+   -- initialize bag cache (must be run AFTER: Event.Unit.Availability.Full)
+   initbagcache()
 
    -- return the instance
    return self
