@@ -3,7 +3,7 @@
 --    Addon       __bag_watcher.lua
 --    Author      marcob@marcob.org
 --    StartDate   05/04/2018
---    Version     0.7
+--    Version     0.8
 --
 --
 --    Main Call:
@@ -93,6 +93,37 @@ function bagwatcher(callback_function)
       return
    end
 
+   local function makebagcache()
+
+      for bagnumber=1,10 do
+
+         for bagslot=1,50 do
+
+            itemslot = "si"..string.format("%2.2d",bagnumber).."."..string.format("%3.3d",bagslot)
+
+            item  =  Inspect.Item.Detail(itemslot)
+
+
+            if item and item.stack then
+
+               if self.cachebase[item.name] then
+                  self.cachebase[item.name]   =  self.cachebase[item.name] + (item.stack or 0)
+               else
+                  self.cachebase[item.name]   =  (item.stack or 0)
+               end
+
+               print(string.format("makebagcache: name   %s base   %s stack   %s slot   %s", item.name, self.cachebase[item.name], item.stack, slotid))
+
+            end
+
+         end
+
+      end
+
+      return
+
+   end
+
    -- private
    local function initbagcache()
       --
@@ -105,6 +136,17 @@ function bagwatcher(callback_function)
       --    Utility.Item.Slot.Wardrobe
       --
       local table    =  {}
+
+
+      -- Inspect.Item.Detail  function    Provides detailed information about items.
+      -- Inspect.Item.Find    function	   Finds a slot specifier based on an item ID.
+      -- Inspect.Item.List    function    Generate a list of item IDs from a slot specifier or set of slot specifiers.
+
+      local invbags  =  Inspect.Item.List(Utility.Item.Slot.Inventory("bag"))
+
+
+
+
       local all      =  Inspect.Item.List(Utility.Item.Slot.All())
       local inventory=  Inspect.Item.List(Utility.Item.Slot.Inventory())
       local quest    =  Inspect.Item.List(Utility.Item.Slot.Quest())
@@ -183,14 +225,14 @@ function bagwatcher(callback_function)
                         t.category     =  item.category
                         t.queryid      =  queryid
                         t.newevent     =  new
-                        
+
                         if t.stack  == nil   then
                            t.stack     =  0
                            print(string.format("STACK is ZERO: object %s disapperad from slot %s, resetting stack to 0", item.name, slot))
                         else
                            t.stack     =  item.stack
                         end
-                        
+
                         t.delta        =  t.stack - (self.cachebase[t.name] or 0)
 
                         print(string.format("Queueing Event: queryid[%s]\n                newevent[%s]\n                slot[%s]\n                itemid[%s]\n                name[%s]\n                category[%s]\n                stack=[%s]\n                delta=[%s]\n                cachebase=[%s]", queryid, new, slot, itemid, item.name, item.category, item.stack,  t.delta, self.cachebase[item.name]))
@@ -307,7 +349,8 @@ function bagwatcher(callback_function)
    end
 
    -- initialize bag cache (must be run AFTER: Event.Unit.Availability.Full)
-   initbagcache()
+--    initbagcache()
+   makebagcache()
 
    -- return the instance
    return self
