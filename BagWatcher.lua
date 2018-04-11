@@ -33,7 +33,7 @@ local function main(h, t)
 
    if weareready then
 
-      Command.Event.Detach(Event.Unit.Availability.Full, main, "Stats: get base stats")
+--       Command.Event.Detach(Event.Unit.Availability.Full, main, "Stats: get base stats")
 
       bw.bagwatcher  =  bagwatcher(displayresults)
 

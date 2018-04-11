@@ -3,7 +3,7 @@
 --    Addon       __bag_watcher.lua
 --    Author      marcob@marcob.org
 --    StartDate   05/04/2018
---    Version     0.8
+--    Version     0.9
 --
 --
 --    Main Call:
@@ -112,7 +112,7 @@ function bagwatcher(callback_function)
                   self.cachebase[item.name]   =  (item.stack or 0)
                end
 
-               print(string.format("makebagcache: name   %s base   %s stack   %s slot   %s", item.name, self.cachebase[item.name], item.stack, slotid))
+               print(string.format("makebagcache:\tname=%s\tbase=%s\tstack=%s\tslot=%s", item.name, self.cachebase[item.name], item.stack, slotid))
 
             end
 
@@ -209,9 +209,9 @@ function bagwatcher(callback_function)
 
                   for queryid, qargs in pairs(wtable) do
 
-                     if qargs.itemid   and   qargs.itemid   == item.itemid               then  qhits =  qhits +1 end
-                     if qargs.name     and   string.find(item.name, qargs.name)          then  qhits =  qhits +1 end
-                     if qargs.category and   string.find(item.category, qargs.category)  then  qhits =  qhits +1 end
+                     if qargs.itemid   and   qargs.itemid   ==    item.itemid                                  then  qhits =  qhits +1 end
+                     if qargs.name     and   item.name      and   string.find(item.name, qargs.name)           then  qhits =  qhits +1 end
+                     if qargs.category and   item.category  and   string.find(item.category, qargs.category)   then  qhits =  qhits +1 end
 
                      --
                      -- do we have enough hits?
@@ -233,7 +233,7 @@ function bagwatcher(callback_function)
                            t.stack     =  item.stack
                         end
 
-                        t.delta        =  t.stack - (self.cachebase[t.name] or 0)
+                        t.delta        =  ( t.stack - (self.cachebase[t.name] or 0) )
 
                         print(string.format("Queueing Event: queryid[%s]\n                newevent[%s]\n                slot[%s]\n                itemid[%s]\n                name[%s]\n                category[%s]\n                stack=[%s]\n                delta=[%s]\n                cachebase=[%s]", queryid, new, slot, itemid, item.name, item.category, item.stack,  t.delta, self.cachebase[item.name]))
                         --
@@ -355,3 +355,12 @@ function bagwatcher(callback_function)
    -- return the instance
    return self
 end
+
+--[[
+Error: BagWatcher/__bag_watcher.lua:214: bad argument #1 to 'find' (string expected, got nil)
+    In BagWatcher / bagmonitor_item_slot, event Event.Item.Slot
+stack traceback:
+	[C]: ?
+	[C]: in function 'find'
+	BagWatcher/__bag_watcher.lua:214: in function <BagWatcher/__bag_watcher.lua:193>
+   ]]--
