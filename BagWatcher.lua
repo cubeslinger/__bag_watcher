@@ -16,7 +16,7 @@ local function displayresults(t)
       for a, b in pairs(v) do
          print(string.format("                              : [%s] [%s]", a, b))
       end
-      print(string.format("BagWatcher: %s %s", v.name, v.delta))
+      print(string.format("BagWatcher: %s %s", v.name, bw.base[v.name]))
    end
 
    return
@@ -33,9 +33,13 @@ local function main(h, t)
 
    if weareready then
 
---       Command.Event.Detach(Event.Unit.Availability.Full, main, "Stats: get base stats")
+      Command.Event.Detach(Event.Unit.Availability.Full, main, "Stats: get base stats")
 
       bw.bagwatcher  =  bagwatcher(displayresults)
+      bw.bagscanner  =  bagscanner()
+
+      bw.base        =  {}
+      bw.base        =  bw.bagscanner.inventory()
 
       -- <handler>.addwatcher( {name="itemname", category="categoryname", itemid="itemid" } )
       --    userinput.name       -> watch for item by name (or substring)
