@@ -132,7 +132,7 @@ function bagwatcher(callback_function)
                            t.stack     =  item.stack
                         end
 
-                        print(string.format("Queueing Event: queryid[%s]\n                newevent[%s]\n                slot[%s]\n                itemid[%s]\n                name[%s]\n                category[%s]\n                stack=[%s]", queryid, new, slot, itemid, item.name, item.category, item.stack))
+--                         print(string.format("Queueing Event: queryid[%s]\n                newevent[%s]\n                slot[%s]\n                itemid[%s]\n                name[%s]\n                category[%s]\n                stack=[%s]", queryid, new, slot, itemid, item.name, item.category, item.stack))
                         --
                         queue_message(t)
                         --
@@ -217,7 +217,6 @@ function bagwatcher(callback_function)
          -- first item to monitor, so we
          -- need to install Event Monitors.
          --
---          print(string.format("**** countarray(watchers) = %s", countarray(watchers)))
          if countarray(watchers) < 1 then attach_events() end
 
          queryid           =  queryid + 1

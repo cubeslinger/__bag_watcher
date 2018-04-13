@@ -2,7 +2,7 @@
 -- Addon       BagWatcher.lua
 -- Author      marcob@marcob.org
 -- StartDate   04/04/2018
--- Version     0.2
+-- Version     0.3
 --
 local addon, bw = ...
 --
@@ -10,14 +10,33 @@ local function displayresults(t)
 
    local k, v = nil, nil
    local a, b = nil, nil
-   local c, d = nil, nil
+
    for k, v in pairs (t) do
-      print(string.format("main: displayresults (t): msgid [%s]", k))
-      for a, b in pairs(v) do
-         print(string.format("                              : [%s] [%s]", a, b))
+--       print(string.format("main: displayresults (t): msgid [%s]", k))
+--       for a, b in pairs(v) do
+--          print(string.format("                              : [%s] [%s]", a, b))
+--       end
+
+      if bw.bagscanner.base  then
+         print(string.format("BagWatcher: \"%s\" %s", v.name, (v.stack - bw.bagscanner.base[v.name])))
       end
-      print(string.format("BagWatcher: %s %s", v.name, bw.base[v.name]))
    end
+
+   return
+
+end
+
+local function  doinventoryscan()
+
+   bw.bagscanner.inventory()
+
+--    local k, v  =  nil, nil
+--    local count =  0
+--    for k, v in pairs(bw.bagscanner.base) do
+--       print(string.format("doinventoryscan(bw.base): (%02s) [%30s] [%02s]", count, k, v))
+--       count =  count + 1
+--    end
+
 
    return
 
@@ -38,17 +57,14 @@ local function main(h, t)
       bw.bagwatcher  =  bagwatcher(displayresults)
       bw.bagscanner  =  bagscanner()
 
-      bw.base        =  {}
-      bw.base        =  bw.bagscanner.inventory()
+      bw.timer       =  __timer()
+      bw.timer.add(doinventoryscan, 5)
 
-      -- <handler>.addwatcher( {name="itemname", category="categoryname", itemid="itemid" } )
-      --    userinput.name       -> watch for item by name (or substring)
-      --    userinput.category   -> watch for category items (or substring)
-      --    userinput.itemid     -> watch for item by its itemid
-      --
---       local q        =  {}
-      local fish     =  bw.bagwatcher.addwatcher({ category =  "fish" })            -- everything in a category with "fish" in it's name
-      local burlap   =  bw.bagwatcher.addwatcher({ name     =  "burlap cloth" })    -- look for "burlap cloth" in item name (case INsensitive)
+      local q  =  {  fish     =  bw.bagwatcher.addwatcher({ category =  "fish" }),           -- everything in a category with "fish" in it's name
+                     burlap   =  bw.bagwatcher.addwatcher({ name     =  "burlap cloth" })    -- look for "burlap cloth" in item name (case INsensitive)
+                  }
+--       local fish     =  bw.bagwatcher.addwatcher({ category =  "fish" })            -- everything in a category with "fish" in it's name
+--       local burlap   =  bw.bagwatcher.addwatcher({ name     =  "burlap cloth" })    -- look for "burlap cloth" in item name (case INsensitive)
 
    end
 
