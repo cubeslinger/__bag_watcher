@@ -1,7 +1,7 @@
 Identifier  =  "BagWatcher"
 Name        =  { English = "BagWatcher" }
 NameShort   =  "BagWatcher"
-Version     =  "0.0.21"
+Version     =  "0.0.22"
 Description =  { English = "Snoops your bags, all of them!" }
 Author      =  "marcob@marcob.org"
 Website     =  "https://github.com/cubeslinger/__bag_watcher"

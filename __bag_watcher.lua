@@ -111,6 +111,7 @@ function bagwatcher(callback_function)
                      if qargs.itemid   and   qargs.itemid   ==    item.itemid                                  then  qhits =  qhits +1 end
                      if qargs.name     and   item.name      and   string.find(item.name, qargs.name)           then  qhits =  qhits +1 end
                      if qargs.category and   item.category  and   string.find(item.category, qargs.category)   then  qhits =  qhits +1 end
+                     if qargs.bag      and   string.find(slot, qargs.bag)                                      then  qhits =  qhits +1 end
 
                      --
                      -- do we have enough hits?
