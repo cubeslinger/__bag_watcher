@@ -13,6 +13,7 @@
 --
 --    Public Methods:
 --
+--       <void>   =  bagscanner.scanlist( { "inventory", "quest" } )
 --
 --    Public Vars:
 --
@@ -20,10 +21,10 @@
 --
 function bagscanner()
    -- the new instance
+   -- public fields go in the instance table
    local self =   {
-                  base  =  {},
-      -- public fields go in the instance table
-   }
+                  base     =  {},
+                  }
 
    --
    -- private fields are implemented using locals
@@ -99,7 +100,7 @@ function bagscanner()
                   self.base[item.name]   =  (item.stack or 0)
                end
 
---                print(string.format("makebagcache:\tname=%s\tbase=%s\tstack=%s\tslot=%s", item.name, self.base[item.name], item.stack, itemslot))
+--                print(string.format("makeinvbagcache:\tname=%s\tbase=%s\tstack=%s\tslot=%s", item.name, self.base[item.name], item.stack, itemslot))
 
             else
 
@@ -119,12 +120,67 @@ function bagscanner()
       return self.base
    end
 
-   --
-   -- PUBLIC: initialize bag cache
-   --
-   function self.inventory()
+   local function makeqstbagcache()
 
-      makeinvbagcache()
+      local bagslots =  40
+      local bagslot  =  nil
+      local itemslot =  nil
+
+--       print(string.format("makeqstbagcache: bagnumber=%s bagslots=%s", bagnumber, bagslots ))
+
+      for bagslot=1, bagslots do
+
+--          print(string.format("makeqstbagcache: bagnumber=%s bagslot=%s", bagnumber, bagslot))
+
+         itemslot = "sqst"
+         itemslot =  itemslot.."."
+         itemslot =  itemslot..string.format("%3.3d", bagslot)
+
+         local item  =  Inspect.Item.Detail(itemslot)
+
+         print(string.format("itemslot: %s item: %s", itemslot, item))
+
+         if item and item.stack then
+
+            --                print("...adding...")
+
+            if self.base[item.name] then
+               self.base[item.name]   =  self.base[item.name] + (item.stack or 0)
+            else
+               self.base[item.name]   =  (item.stack or 0)
+            end
+
+--             print(string.format("makeqstbagcache:\tname=%s\tbase=%s\tstack=%s\tslot=%s", item.name, self.base[item.name], item.stack, itemslot))
+
+--          else
+--
+--             print(string.format("adding failed: item=%s", item))
+
+         end
+
+      end
+
+      return
+   end
+
+   --
+   -- PUBLIC: scan all bags listed in {t}
+   -- atm only:   "inventory" => (all inventory bags) e
+   --             "quest"     => (all quest log bag slots)
+   --             are allowed
+   --
+   function self.scanlist(t)
+   -- self.scanlist( { "inventory", "quest" } )
+
+      if t  then
+         local bag      =  nil
+         for _, bag in ipairs(t) do
+            if bag   == "inventory" then  makeinvbagcache()    end   -- all inventory bags
+            if bag   == "quest"     then  makeqstbagcache()    end   -- all questlog bag slots
+            --             if bag   == "bank"      then  end   -- all bank + vaults slots
+            --             if bag   == "guild"     then  end   -- all guildbank + vaults slots
+         end
+      end
 
       return
    end
@@ -133,3 +189,26 @@ function bagscanner()
    -- return the instance
    return self
 end
+
+--[[
+   Error: Incorrect function usage.
+   Parameters: "sibg"
+   Parameter types: slot
+   Function documentation:
+   Generates a slot specifier for the player's quest bag.
+   slot = Utility.Item.Slot.Quest()   -- slot <- void
+   slot = Utility.Item.Slot.Quest(slot)   -- slot <- number
+   Parameters:
+   slot:	The slot ID, starting at 1.
+   Return values:
+   slot:	The requested slot specifier.
+   In BagWatcher / Event.System.Update.Begin, event Event.System.Update.Begin
+   stack traceback:
+   [C]: ?
+   [C]: in function 'Quest'
+   BagWatcher/__bag_scanner.lua:125: in function 'makeqstbagcache'
+   BagWatcher/__bag_scanner.lua:214: in function 'scanlist'
+   BagWatcher/BagWatcher.lua:64: in function 'callback'
+   BagWatcher/__timer.lua:114: in function <BagWatcher/__timer.lua:34>
+
+    ]]

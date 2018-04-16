@@ -17,7 +17,7 @@ local function countarray(array)
 
    return count
 end
-      
+
 local function displayresults(t)
 
    local k, v = nil, nil
@@ -33,31 +33,22 @@ local function displayresults(t)
 
       if bw.base  then
          --
-         -- is it a REAL event or we did just got a 
-         -- refresh from server, like when we use a 
+         -- is it a REAL event or we did just got a
+         -- refresh from server, like when we use a
          -- porticulum?
          --
          if (v.stack ~= (bw.delta[v.name] or 0)) then
---             print(string.format("BagWatcher: base/delta/stack=%s/%s/%s", (bw.base[v.name] or nil), (bw.delta[v.name] or nil), v.stack))
---             print(string.format("BagWatcher: %s %s (base/delta/stack=%s/%s/%s)", v.name, 
---                                                             (v.stack - (bw.delta[v.name] or 0)), 
---                                                             (bw.base[v.name] or nil), 
---                                                             (bw.delta[v.name] or nil), 
---                                                             v.stack
---                               )
---                )
-               
-            Command.Console.Display(   "general", 
-                                       true, 
-                                       string.format("BagWatcher: %s %s (base/delta/stack=%s/%s/%s)", v.name, 
-                                                            (v.stack - (bw.delta[v.name] or 0)), 
-                                                            (bw.base[v.name] or nil), 
-                                                            (bw.delta[v.name] or nil), 
+            Command.Console.Display(   "general",
+                                       true,
+                                       string.format("BagWatcher: %s %s (base/delta/stack=%s/%s/%s)", v.name,
+                                                            (v.stack - (bw.delta[v.name] or 0)),
+                                                            (bw.base[v.name] or nil),
+                                                            (bw.delta[v.name] or nil),
                                                             v.stack
                                                    ),
-                                       true)                              
+                                       true)
          end
-         
+
          bw.delta[v.name] =  v.stack
          if not bw.base[v.name] then bw.base[v.name] = v.stack end
       end
@@ -69,7 +60,8 @@ end
 
 local function  doinventoryscan()
 
-   bw.bagscanner.inventory()
+--    bw.bagscanner.inventory()
+   bw.bagscanner.scanlist( { "inventory", "quest" })
    bw.delta =  bw.bagscanner.base
    bw.base  =  bw.bagscanner.base
 
@@ -120,13 +112,3 @@ local function main(h, t)
 end
 
 Command.Event.Attach(Event.Unit.Availability.Full, main,    "Stats: get base stats")
-
---[[
-    Error: BagWatcher/BagWatcher.lua:21: attempt to index global 'item' (a nil value)
-    In BagWatcher / bagmonitor_item_slot, event Event.Item.Slot
-stack traceback:
-	[C]: in function '__index'
-	BagWatcher/BagWatcher.lua:21: in function 'callback_function'
-	BagWatcher/__bag_watcher.lua:86: in function 'queue_message'
-	BagWatcher/__bag_watcher.lua:137: in function <BagWatcher/__bag_watcher.lua:92>
-   ]]
