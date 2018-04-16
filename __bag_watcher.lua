@@ -3,7 +3,7 @@
 --    Addon       __bag_watcher.lua
 --    Author      marcob@marcob.org
 --    StartDate   05/04/2018
---    Version     0.10
+--    Version     0.11
 --
 --
 --    Main Call:
@@ -221,7 +221,7 @@ function bagwatcher(callback_function)
          if countarray(watchers) < 1 then attach_events() end
 
          queryid           =  queryid + 1
-         table.insert(watchers, { [queryid] =  userinput })
+         table.insert(watchers, {queryid=userinput})
       end
 
       return queryid
@@ -233,8 +233,8 @@ function bagwatcher(callback_function)
    --
    function self.delwatcher(watcherid)
 
-      if self.watchers[watcherid]   then
-         table.remove(self.watchers, watcherid)
+      if watchers[watcherid]   then
+         table.remove(watchers, watcherid)
 
          -- if this is the last element watched we need to remove
          -- Event Monitors.
@@ -244,6 +244,19 @@ function bagwatcher(callback_function)
       return
    end
 
+
+   --
+   -- PUBLIC:  returns active watchers list, returned
+   --          table format is:
+   --          t  =  { [queryid] =  userinput }
+   --
+   function self.list()
+
+      local queryid, table   =  nil, nil
+
+      return watchers
+   end
+
    -- return the instance
-   return self
+   return   self
 end

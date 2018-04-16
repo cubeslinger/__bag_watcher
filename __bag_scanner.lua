@@ -138,9 +138,9 @@ function bagscanner()
 
          local item  =  Inspect.Item.Detail(itemslot)
 
-         print(string.format("itemslot: %s item: %s", itemslot, item))
-
          if item and item.stack then
+
+--             print(string.format("itemslot: %s item: %s", itemslot, item.name))
 
             --                print("...adding...")
 

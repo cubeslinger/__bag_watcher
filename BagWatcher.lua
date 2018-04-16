@@ -2,7 +2,7 @@
 -- Addon       BagWatcher.lua
 -- Author      marcob@marcob.org
 -- StartDate   04/04/2018
--- Version     0.4
+-- Version     0.6
 --
 local addon, bw = ...
 --
@@ -60,19 +60,13 @@ end
 
 local function  doinventoryscan()
 
---    bw.bagscanner.inventory()
    bw.bagscanner.scanlist( { "inventory", "quest" })
    bw.delta =  bw.bagscanner.base
    bw.base  =  bw.bagscanner.base
 
---    local k, v  =  nil, nil
---    local count =  0
---    for k, v in pairs(bw.bagscanner.base) do
---       print(string.format("doinventoryscan(bw.base): (%02s) [%30s] [%02s]", count, k, v))
---       count =  count + 1
---    end
+--    print(string.format("BagWatcher is ready: %s items indexed.", countarray(bw.base)))
 
-   print(string.format("BagWatcher is ready: %s items indexed.", countarray(bw.base)))
+   Command.Console.Display( "general", true, string.format("BagWatcher is ready: %s items indexed.", countarray(bw.base)), true)
 
    return
 
@@ -98,12 +92,33 @@ local function main(h, t)
       bw.timer       =  __timer()
       bw.timer.add(doinventoryscan, 5)
 
-      local q  =  {  fish     =  bw.bagwatcher.addwatcher({ category =  "fish",           bag="si" }),   -- everything in a category with "fish" in it's name (in inventory)
-                     burlap   =  bw.bagwatcher.addwatcher({ name     =  "burlap cloth",   bag="si" }),   -- look for "burlap cloth" in item name (case INsensitive)(in inv.)
-                     artifact =  bw.bagwatcher.addwatcher({ category =  "artifact",       bag="si" })    -- look for "burlap cloth" in item name (case INsensitive)(in inv.)
+      local q  =  {  fish     =  bw.bagwatcher.addwatcher({ category =  "fish",                 bag="si" }),   -- everything in a category with "fish" in it's name (in inventory)
+                     burlap   =  bw.bagwatcher.addwatcher({ name     =  "burlap cloth",         bag="si" }),   -- look for "burlap cloth" by name (case INsensitive)(in inventory)
+                     artifact =  bw.bagwatcher.addwatcher({ category =  "artifact",             bag="si" }),   -- look for "burlap cloth" by name (case INsensitive)(in inventory)
+                     sparkles =  bw.bagwatcher.addwatcher({ name     =  "exceptional sparkles", bag="qst"})    -- look for "Exceptional Sparkles" by name (in Quest Log Bag Slots)
                   }
---       local fish     =  bw.bagwatcher.addwatcher({ category =  "fish" })            -- everything in a category with "fish" in it's name
---       local burlap   =  bw.bagwatcher.addwatcher({ name     =  "burlap cloth" })    -- look for "burlap cloth" in item name (case INsensitive)
+
+      -- display active Watchers list
+      local watcherslist   =  bw.bagwatcher.list()
+      -- debug -- begin
+      if next(watcherslist)  then
+
+         for queryid, table in pairs(watcherslist) do
+
+            print(string.format("Watchers List, QuerID: [%s]", queryid))
+
+            local k, v  =  nil, nil
+            for k, v in pairs(table) do
+               --                print(string.format("             : k[%s]=v(%s)", k, v))
+
+               local a, b  =  nil, nil
+               for a, b in pairs(v) do
+                  print(string.format("             : [%s]=(%s)", a, b))
+               end
+            end
+         end
+      end
+      -- debug -- end
 
    end
 
