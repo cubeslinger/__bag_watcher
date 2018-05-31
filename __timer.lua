@@ -1,5 +1,4 @@
 --
---
 --    Addon       __timer.lua
 --    Author      marcob@marcob.org
 --    StartDate   13/04/2018

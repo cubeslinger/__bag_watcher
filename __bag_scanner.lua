@@ -17,6 +17,7 @@
 --
 --    Public Vars:
 --
+--       self.base=  {} hash containing scan results
 --
 --
 function bagscanner()
@@ -34,6 +35,28 @@ function bagscanner()
    -- local queryid  =  0
    -- local msgid    =  0
    -- local lastmsg  =  0
+
+
+   -- split a string
+   function string:split(delimiter)
+
+      local result = { }
+
+      local from  = 1
+
+      local delim_from, delim_to = string.find( self, delimiter, from  )
+
+      while delim_from do
+         table.insert( result, string.sub( self, from , delim_from-1 ) )
+         from  = delim_to + 1
+         delim_from, delim_to = string.find( self, delimiter, from  )
+      end
+
+      table.insert( result, string.sub( self, from  ) )
+
+      return result
+   end
+
 
    -- private
    local function makeinvbagcache()
@@ -55,7 +78,7 @@ function bagscanner()
 
 --             print(string.format("makeinvbagcache: bagslot=%s bagid=%s, name=%s", bagslot, bagid, baginfo.name ))
 
-            local lbl, bagnumber =  unpack(string.split(bagslot, "."))
+            local lbl, bagnumber =  unpack(bagslot:split("%."))
             bagnumber            =  tonumber(bagnumber)
 
 --             print(string.format("makeinvbagcache: lbl=%s bagnumber=%s", lbl, bagnumber))
@@ -190,25 +213,3 @@ function bagscanner()
    return self
 end
 
---[[
-   Error: Incorrect function usage.
-   Parameters: "sibg"
-   Parameter types: slot
-   Function documentation:
-   Generates a slot specifier for the player's quest bag.
-   slot = Utility.Item.Slot.Quest()   -- slot <- void
-   slot = Utility.Item.Slot.Quest(slot)   -- slot <- number
-   Parameters:
-   slot:	The slot ID, starting at 1.
-   Return values:
-   slot:	The requested slot specifier.
-   In BagWatcher / Event.System.Update.Begin, event Event.System.Update.Begin
-   stack traceback:
-   [C]: ?
-   [C]: in function 'Quest'
-   BagWatcher/__bag_scanner.lua:125: in function 'makeqstbagcache'
-   BagWatcher/__bag_scanner.lua:214: in function 'scanlist'
-   BagWatcher/BagWatcher.lua:64: in function 'callback'
-   BagWatcher/__timer.lua:114: in function <BagWatcher/__timer.lua:34>
-
-    ]]
